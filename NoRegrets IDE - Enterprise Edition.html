@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NoRegrets IDE (Enterprise Edition) | DevFest Mumbai 2026</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-fast': 'pulse 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        ' siren': 'sirenGlow 0.8s ease-in-out infinite alternate',
+                    },
+                    keyframes: {
+                        sirenGlow: {
+                            '0%': { boxShadow: '0 0 15px rgba(239, 68, 68, 0.35), inset 0 0 15px rgba(239, 68, 68, 0.15)' },
+                            '100%': { boxShadow: '0 0 35px rgba(239, 68, 68, 0.85), inset 0 0 25px rgba(239, 68, 68, 0.35)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom IDE Scrollbars & Animations */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+
+        @keyframes screenShake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            15% { transform: translate(-6px, -4px) rotate(-0.5deg); }
+            30% { transform: translate(6px, 3px) rotate(0.5deg); }
+            45% { transform: translate(-5px, 4px) rotate(-0.3deg); }
+            60% { transform: translate(5px, -3px) rotate(0.3deg); }
+            75% { transform: translate(-3px, 2px) rotate(0deg); }
+        }
+
+        .shake-alert {
+            animation: screenShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+
+        @keyframes hazardStripes {
+            0% { background-position: 0 0; }
+            100% { background-position: 40px 0; }
+        }
+
+        .hazard-bar {
+            background: repeating-linear-gradient(
+                -45deg,
+                #dc2626,
+                #dc2626 12px,
+                #111827 12px,
+                #111827 24px
+            );
+            background-size: 34px 34px;
+            animation: hazardStripes 1s linear infinite;
+        }
+
+        .editor-textarea {
+            line-height: 1.65rem;
+            tab-size: 4;
+            caret-color: #38bdf8;
+        }
+
+        .line-numbers {
+            line-height: 1.65rem;
+            user-select: none;
+        }
+
+        /* Range Slider Custom Styling */
+        input[type=range].remorse-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        input[type=range].remorse-slider::-webkit-slider-runnable-track {
+            background: #1e293b;
+            height: 10px;
+            border-radius: 999px;
+            border: 1px solid #334155;
+        }
+        input[type=range].remorse-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            margin-top: -6px;
+            background-color: #f59e0b;
+            height: 22px;
+            width: 22px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.8);
+            transition: transform 0.15s ease;
+        }
+        input[type=range].remorse-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+    </style>
+</head>
+<body class="bg-[#080c14] text-slate-100 font-sans min-h-screen flex flex-col selection:bg-rose-500/30 selection:text-rose-200 overflow-x-hidden">
+
+    <!-- ==========================================
+         TOP ENTERPRISE NAVBAR
+         ========================================== -->
+    <header class="bg-[#0d1322] border-b border-slate-800/90 px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-30 shadow-lg">
+        <!-- Brand & Cluster Status -->
+        <div class="flex items-center gap-3 flex-wrap">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-rose-600 to-orange-600 flex items-center justify-center shadow-md shadow-rose-600/30 border border-rose-400/30">
+                    <i class="fa-solid fa-ban text-white text-lg"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold tracking-tight text-white text-base sm:text-lg">NoRegrets IDE</span>
+                        <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-rose-500/15 text-rose-400 border border-rose-500/30 font-semibold">v4.2.0-enterprise</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 hidden sm:block">Zero-Tolerance Syntax Accountability Environment • Built for #TheDumbIdeasChallenge</p>
+                </div>
+            </div>
+
+            <!-- Live Region & Firewall Pill -->
+            <div class="hidden xl:flex items-center gap-2 bg-slate-900/90 border border-slate-700/80 rounded-full px-3 py-1 text-xs font-mono text-slate-300">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span class="w-2 h-2 rounded-full bg-emerald-400 -ml-3"></span>
+                <span class="text-slate-400">cluster:</span>
+                <span class="text-sky-400 font-semibold">ap-south-1 (Mumbai)</span>
+                <span class="text-slate-600">|</span>
+                <span class="text-rose-400 font-semibold"><i class="fa-solid fa-shield-halved mr-1"></i>Backspace Firewall: ARMED</span>
+            </div>
+        </div>
+
+        <!-- Action Controls -->
+        <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap">
+            <!-- Inject Typo Button -->
+            <button id="btnTriggerTypo" class="px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer" title="Inject a fresh embarrassing typo at the end of the code">
+                <i class="fa-solid fa-bug"></i>
+                <span>Inject Typo</span>
+            </button>
+
+            <!-- Direct Hostage Demo Trigger (Great for Mobile & Quick Testing) -->
+            <button id="btnSimulateBackspace" class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-rose-600/30 transition active:scale-95 cursor-pointer">
+                <i class="fa-solid fa-delete-left"></i>
+                <span>Press Backspace</span>
+            </button>
+
+            <!-- Sound Toggle -->
+            <button id="btnSoundToggle" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 text-xs font-mono flex items-center gap-1.5 transition cursor-pointer">
+                <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+                <span id="soundLabel" class="hidden sm:inline">SFX: ON</span>
+            </button>
+
+            <!-- Shame Certificate Button -->
+            <button id="btnShameCert" class="px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer">
+                <i class="fa-solid fa-certificate"></i>
+                <span class="hidden sm:inline">Shame Certificate</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ==========================================
+         TELEMETRY METRICS BAR
+         ========================================== -->
+    <section class="bg-[#0b101d] border-b border-slate-800/80 px-3 sm:px-6 py-2.5">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+            <!-- Metric 1: Illegal Deletions Blocked -->
+            <div id="cardBlocked" class="bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between transition-all duration-300">
+                <div>
+                    <p class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Illegal Deletions Blocked</p>
+                    <p id="statBlocked" class="text-xl sm:text-2xl font-mono font-bold text-rose-400 mt-0.5">0</p>
+                </div>
+                <div class="w-9 h-9 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+                    <i class="fa-solid fa-hand"></i>
+                </div>
+            </div>
+
+            <!-- Metric 2: Formal Apologies Written -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between">
+                <div>
+                    <p class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Formal Apologies Filed</p>
+                    <p id="statApologies" class="text-xl sm:text-2xl font-mono font-bold text-amber-400 mt-0.5">0</p>
+                </div>
+                <div class="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                    <i class="fa-solid fa-file-signature"></i>
+                </div>
+            </div>
+
+            <!-- Metric 3: Single Characters Deleted -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between">
+                <div>
+                    <p class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">1-Char Deletions Approved</p>
+                    <div class="flex items-baseline gap-2 mt-0.5">
+                        <p id="statApproved" class="text-xl sm:text-2xl font-mono font-bold text-emerald-400">0</p>
+                        <span id="statTokenCost" class="text-[11px] font-mono text-slate-500">(0 AI tokens)</span>
+                    </div>
+                </div>
+                <div class="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                    <i class="fa-solid fa-check-double"></i>
+                </div>
+            </div>
+
+            <!-- Metric 4: Productivity Drop -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between">
+                <div>
+                    <p class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Net Productivity Impact</p>
+                    <p id="statProductivity" class="text-xl sm:text-2xl font-mono font-bold text-sky-400 mt-0.5">-98.4%</p>
+                </div>
+                <div class="w-9 h-9 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
+                    <i class="fa-solid fa-arrow-trend-down"></i>
+                </div>
+            </div>
+
+            <!-- Metric 5: Current Shame Level -->
+            <div class="col-span-2 sm:col-span-1 bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between">
+                <div class="overflow-hidden">
+                    <p class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Developer Shame Tier</p>
+                    <p id="statShameTier" class="text-sm sm:text-base font-mono font-bold text-purple-400 mt-1 truncate">Junior Typist</p>
+                </div>
+                <div class="w-9 h-9 shrink-0 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+                    <i class="fa-solid fa-user-secret"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         MAIN IDE WORKSPACE (SIDEBAR + CODE EDITOR)
+         ========================================== -->
+    <main class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+
+        <!-- LEFT SIDEBAR: FILE EXPLORER & AUDIT LOG -->
+        <aside class="w-full lg:w-80 bg-[#0b0f19] border-b lg:border-b-0 lg:border-r border-slate-800/90 flex flex-col shrink-0">
+            <!-- Explorer Header -->
+            <div class="px-4 py-2.5 border-b border-slate-800/80 flex items-center justify-between">
+                <span class="text-xs font-mono uppercase tracking-wider text-slate-400 font-semibold">
+                    <i class="fa-solid fa-folder-tree mr-1.5 text-sky-400"></i>Enterprise Workspace
+                </span>
+                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">READ/APPEND-ONLY</span>
+            </div>
+
+            <!-- File List -->
+            <div class="p-2 space-y-1 border-b border-slate-800/80">
+                <button data-file="prod_hotfix_DO_NOT_TOUCH.js" class="file-tab w-full text-left px-3 py-2 rounded-lg text-xs font-mono flex items-center justify-between bg-sky-500/15 text-sky-300 border border-sky-500/30 transition cursor-pointer">
+                    <span class="flex items-center gap-2 truncate">
+                        <i class="fa-brands fa-js text-amber-400"></i>
+                        <span class="truncate">prod_hotfix_DO_NOT_TOUCH.js</span>
+                    </span>
+                    <span class="text-[10px] px-1.5 py-0.2 bg-rose-500/20 text-rose-300 rounded">DIRTY</span>
+                </button>
+
+                <button data-file="salary_calculator.py" class="file-tab w-full text-left px-3 py-2 rounded-lg text-xs font-mono flex items-center justify-between text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition cursor-pointer">
+                    <span class="flex items-center gap-2 truncate">
+                        <i class="fa-brands fa-python text-sky-400"></i>
+                        <span class="truncate">salary_calculator.py</span>
+                    </span>
+                    <span class="text-[10px] text-slate-500">LOCKED</span>
+                </button>
+
+                <button data-file="apology_logs.json" class="file-tab w-full text-left px-3 py-2 rounded-lg text-xs font-mono flex items-center justify-between text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition cursor-pointer">
+                    <span class="flex items-center gap-2 truncate">
+                        <i class="fa-solid fa-file-code text-emerald-400"></i>
+                        <span class="truncate">apology_logs.json</span>
+                    </span>
+                    <span id="apologyFileBadge" class="text-[10px] px-1.5 py-0.2 bg-amber-500/20 text-amber-300 rounded">0 logs</span>
+                </button>
+            </div>
+
+            <!-- Keyboard Firewall Rules -->
+            <div class="px-4 py-2.5 border-b border-slate-800/80 bg-slate-900/40">
+                <p class="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold mb-2">
+                    <i class="fa-solid fa-lock text-rose-400 mr-1"></i>Intercepted Keys (Hostage Mode)
+                </p>
+                <div class="flex flex-wrap gap-1.5">
+                    <span class="px-2 py-0.5 rounded bg-rose-950/80 border border-rose-700/50 text-rose-300 font-mono text-[11px]">Backspace</span>
+                    <span class="px-2 py-0.5 rounded bg-rose-950/80 border border-rose-700/50 text-rose-300 font-mono text-[11px]">Delete</span>
+                    <span class="px-2 py-0.5 rounded bg-rose-950/80 border border-rose-700/50 text-rose-300 font-mono text-[11px]">Ctrl+Z / Cmd+Z</span>
+                    <span class="px-2 py-0.5 rounded bg-rose-950/80 border border-rose-700/50 text-rose-300 font-mono text-[11px]">Ctrl+X (Cut)</span>
+                </div>
+            </div>
+
+            <!-- Live Compliance Audit Log Terminal -->
+            <div class="flex-1 flex flex-col min-h-[180px] lg:min-h-0">
+                <div class="px-4 py-2 border-b border-slate-800/80 flex items-center justify-between bg-[#090d16]">
+                    <span class="text-[11px] font-mono uppercase tracking-wider text-emerald-400 font-semibold flex items-center gap-1.5">
+                        <i class="fa-solid fa-terminal"></i>Compliance Audit Stream
+                    </span>
+                    <button id="btnClearLogs" class="text-[10px] font-mono text-slate-500 hover:text-slate-300 cursor-pointer">Clear</button>
+                </div>
+                <div id="auditLogContainer" class="flex-1 p-3 font-mono text-xs space-y-2 overflow-y-auto max-h-48 lg:max-h-none bg-[#070a11]">
+                    <!-- Dynamically populated logs -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- CENTER/RIGHT: MAIN CODE EDITOR AREA -->
+        <section class="flex-1 flex flex-col bg-[#0f172a] overflow-hidden">
+
+            <!-- Interactive Tutorial Callout Banner -->
+            <div class="bg-gradient-to-r from-rose-950/90 via-amber-950/80 to-slate-900 border-b border-rose-500/40 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2.5">
+                    <span class="px-2 py-0.5 rounded bg-rose-500 text-white font-mono text-xs font-bold animate-pulse">LIVE CHALLENGE</span>
+                    <p class="text-xs sm:text-sm text-amber-200 font-medium">
+                        Look at the end of <span class="font-mono font-bold text-white underline decoration-rose-500">Line 8</span> (<code class="bg-black/40 px-1.5 py-0.5 rounded text-rose-300">"awesomee";</code>). Click the editor and press <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-600 rounded text-xs font-mono text-white shadow">Backspace</kbd> to fix the extra <code class="text-rose-300">e</code>!
+                    </p>
+                </div>
+                <button id="btnBannerBackspace" class="px-3 py-1 rounded-md bg-rose-500/20 hover:bg-rose-500/40 border border-rose-400/50 text-rose-200 text-xs font-mono font-semibold transition cursor-pointer shrink-0">
+                    ⌫ Fix Typo Now
+                </button>
+            </div>
+
+            <!-- Editor File Tab Bar -->
+            <div class="bg-[#0b1120] border-b border-slate-800 px-4 flex items-center justify-between h-10 shrink-0">
+                <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 px-3 py-1.5 bg-[#0f172a] border-t-2 border-t-rose-500 text-xs font-mono text-slate-200 rounded-t">
+                        <i id="activeTabIcon" class="fa-brands fa-js text-amber-400"></i>
+                        <span id="activeTabName">prod_hotfix_DO_NOT_TOUCH.js</span>
+                        <span class="w-2 h-2 rounded-full bg-rose-500" title="Contains unrepented typos"></span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 text-xs font-mono text-slate-400">
+                    <span id="charCountLabel">Length: 274 chars</span>
+                    <span class="hidden sm:inline text-slate-600">|</span>
+                    <span class="hidden sm:inline text-emerald-400"><i class="fa-solid fa-eye mr-1"></i>Keystroke AI Watcher: ACTIVE</span>
+                </div>
+            </div>
+
+            <!-- Code Editor Container (Line Numbers + Textarea) -->
+            <div class="flex-1 relative flex overflow-hidden bg-[#0b0f19]">
+                <!-- Line Numbers Column -->
+                <div id="lineNumbers" class="line-numbers w-12 sm:w-14 py-4 px-2 text-right font-mono text-xs sm:text-sm text-slate-600 bg-[#080c14] border-r border-slate-800/80 select-none shrink-0 overflow-hidden">
+                    1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12
+                </div>
+
+                <!-- Main Code Textarea -->
+                <div class="flex-1 relative flex flex-col">
+                    <textarea
+                        id="codeEditor"
+                        spellcheck="false"
+                        autocapitalize="off"
+                        autocomplete="off"
+                        autocorrect="off"
+                        class="editor-textarea flex-1 w-full p-4 bg-transparent text-slate-100 font-mono text-xs sm:text-sm focus:outline-none resize-none overflow-y-auto"
+                        placeholder="Type your enterprise code here... just don't make a mistake."
+                    ></textarea>
+
+                    <!-- Floating Bottom-Right Accountability Watermark -->
+                    <div class="pointer-events-none absolute bottom-3 right-4 hidden sm:flex items-center gap-2 bg-slate-900/85 border border-slate-800 px-3 py-1.5 rounded-lg text-[11px] font-mono text-slate-400 backdrop-blur-sm">
+                        <i class="fa-solid fa-Scale-balanced text-amber-400"></i>
+                        <span>Every character typed is legally binding under ETAP v4.2</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IDE Status Footer Bar -->
+            <footer class="bg-rose-950/90 border-t border-rose-800/60 px-4 py-1.5 flex flex-wrap items-center justify-between text-[11px] font-mono text-rose-200 gap-2">
+                <div class="flex items-center gap-3">
+                    <span class="flex items-center gap-1.5 font-semibold text-white">
+                        <i class="fa-solid fa-radiation animate-spin"></i>
+                        ETAP-LOCK: ENABLED
+                    </span>
+                    <span class="hidden sm:inline text-rose-400">|</span>
+                    <span id="cursorStatus">Ln 8, Col 39</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span>UTF-8</span>
+                    <span class="text-rose-400">|</span>
+                    <span>Backspace Cost: 1 Formal Apology + 4,200 AI Tokens</span>
+                </div>
+            </footer>
+        </section>
+    </main>
+
+    <!-- ==========================================
+         THE BACKSPACE HOSTAGE MODAL (ETAP v4.2)
+         ========================================== -->
+    <div id="hostageModal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md overflow-y-auto">
+        <div id="hostageModalCard" class="w-full max-w-2xl bg-[#0e1320] border-2 border-rose-500 rounded-2xl shadow-2xl overflow-hidden my-auto animate-siren">
+
+            <!-- Hazard Stripe Top Bar -->
+            <div class="hazard-bar h-3 w-full"></div>
+
+            <!-- Modal Header -->
+            <div class="bg-rose-950/70 border-b border-rose-500/40 px-5 py-3.5 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-rose-600 flex items-center justify-center text-white text-xl shadow-lg shadow-rose-600/50 animate-bounce">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-base sm:text-lg font-extrabold text-white tracking-tight uppercase">Unauthorized Deletion Attempt Detected!</h2>
+                        </div>
+                        <p class="text-xs font-mono text-rose-300">Enterprise Typo Accountability Protocol (ETAP v4.2) • Incident #<span id="incidentId">8841-MUM</span></p>
+                    </div>
+                </div>
+                <span class="px-2.5 py-1 rounded bg-rose-600/30 border border-rose-400 text-rose-200 font-mono text-xs font-bold shrink-0">
+                    HOSTAGE MODE
+                </span>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-4 sm:p-6 space-y-5 max-h-[82vh] overflow-y-auto">
+
+                <!-- Target Character Inspection Dossier -->
+                <div class="bg-slate-900/95 border border-slate-700/80 rounded-xl p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-semibold">Target Byte Scheduled For Termination</span>
+                        <p class="text-xs sm:text-sm text-slate-300 mt-1">
+                            You attempted to assassinate a single character using <span id="triggerKeyBadge" class="font-mono font-bold text-rose-400 underline">BACKSPACE</span>.Complete all 3 compliance rituals below to delete <strong class="text-white">ONE (1)</strong> character.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-3 bg-[#070a12] border border-rose-500/50 rounded-xl px-4 py-2.5 shrink-0 self-stretch sm:self-auto justify-center">
+                        <div class="text-center">
+                            <span class="text-[10px] font-mono text-slate-400 block uppercase">Character</span>
+                            <span id="targetCharDisplay" class="text-2xl sm:text-3xl font-mono font-extrabold text-rose-400">'e'</span>
+                        </div>
+                        <div class="h-8 w-px bg-slate-800"></div>
+                        <div class="text-left font-mono text-xs text-slate-400">
+                            <div>ASCII: <span id="targetAsciiDisplay" class="text-amber-300 font-semibold">101</span></div>
+                            <div>Index: <span id="targetIndexDisplay" class="text-sky-300 font-semibold">#271</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 1: THE FORMAL APOLOGY -->
+                <div id="step1Box" class="bg-slate-900/70 border border-slate-700/80 rounded-xl p-4 space-y-3 transition">
+                    <div class="flex items-center justify-between gap-2 flex-wrap">
+                        <div class="flex items-center gap-2">
+                            <span id="step1Badge" class="w-6 h-6 rounded-full bg-rose-600 text-white font-mono text-xs font-bold flex items-center justify-center">1</span>
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wide">Step 1: Type Formal Statement of Contrition (Case-Sensitive)</h3>
+                        </div>
+                        <button id="btnAutoBribe" type="button" class="text-[11px] font-mono text-amber-400/90 hover:text-amber-300 underline cursor-pointer" title="Short on time? Bribe the compliance bot to auto-fill Step 1 & 2">
+                            💸 Bribe Compliance Officer (Auto-Fill)
+                        </button>
+                    </div>
+
+                    <p class="text-xs text-slate-400">
+                        Type the exact phrase below to admit fault. <span class="text-rose-400 font-semibold">WARNING: Pressing Backspace inside the apology box is strictly prohibited and will wipe your apology!</span>
+                    </p>
+
+                    <!-- Required Phrase Display -->
+                    <div class="bg-[#070b14] border border-slate-800 rounded-lg p-3 flex items-center justify-between gap-2 select-none">
+                        <code id="requiredApologyText" class="font-mono text-sm sm:text-base font-bold text-amber-300 tracking-wide">I admit my skill issue</code>
+                        <span id="step1StatusText" class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 shrink-0">Awaiting Contrition</span>
+                    </div>
+
+                    <!-- Apology Input Box -->
+                    <div class="relative">
+                        <input
+                            id="apologyInput"
+                            type="text"
+                            autocomplete="off"
+                            autocorrect="off"
+                            autocapitalize="off"
+                            spellcheck="false"
+                            placeholder="Type the exact apology phrase above without hitting Backspace..."
+                            class="w-full px-3.5 py-2.5 rounded-lg bg-[#090d18] border border-slate-700 focus:border-amber-400 focus:outline-none font-mono text-sm text-white transition"
+                        />
+                    </div>
+
+                    <!-- Flashing Warning When User Presses Backspace Inside the Apology Box! -->
+                    <div id="apologyBackspaceWarning" class="hidden bg-rose-600/25 border border-rose-500 rounded-lg px-3 py-2 text-xs font-mono text-rose-200 flex items-center gap-2 animate-bounce">
+                        <i class="fa-solid fa-siren-on text-rose-400"></i>
+                        <span>🚨 DOUBLE INFRACTION! NO BACKSPACES ALLOWED IN THE APOLOGY BOX EITHER! Input wiped & Shame increased!</span>
+                    </div>
+                </div>
+
+                <!-- STEP 2: BUREAUCRATIC REMORSE CALIBRATION SLIDER -->
+                <div id="step2Box" class="bg-slate-900/70 border border-slate-700/80 rounded-xl p-4 space-y-3 transition">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span id="step2Badge" class="w-6 h-6 rounded-full bg-rose-600 text-white font-mono text-xs font-bold flex items-center justify-center">2</span>
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wide">Step 2: Calibrate Acoustic Remorse Frequency</h3>
+                        </div>
+                        <span id="step2StatusText" class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">Uncalibrated</span>
+                    </div>
+
+                    <p class="text-xs text-slate-400">
+                        Align the bureaucratic remorse transceiver to <strong class="text-amber-300 font-mono">exactly <span id="targetSliderValue">73</span>%</strong> sincerity:
+                    </p>
+
+                    <div class="flex items-center gap-3">
+                        <button id="btnSliderMinus" type="button" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono font-bold text-sm flex items-center justify-center border border-slate-700 cursor-pointer shrink-0" title="-1%">-</button>
+                        <input id="remorseSlider" type="range" min="0" max="100" value="12" class="remorse-slider flex-1" />
+                        <button id="btnSliderPlus" type="button" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono font-bold text-sm flex items-center justify-center border border-slate-700 cursor-pointer shrink-0" title="+1%">+</button>
+                        <div class="w-20 text-right font-mono text-sm font-bold">
+                            <span id="currentSliderDisplay" class="text-rose-400">12%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 3: MULTI-REGION APPROVAL & DODGING EXECUTION BUTTON -->
+                <div class="bg-slate-900/70 border border-slate-700/80 rounded-xl p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span id="step3Badge" class="w-6 h-6 rounded-full bg-slate-700 text-slate-300 font-mono text-xs font-bold flex items-center justify-center">3</span>
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wide">Step 3: Multi-Region Executive Sign-Off</h3>
+                        </div>
+                        <span id="dodgeHint" class="text-[11px] font-mono text-amber-400 hidden">⚠️ Are you 100% sure? That character has a family!</span>
+                    </div>
+
+                    <!-- Dramatic Multi-Region Progress Bar (Shown on Click) -->
+                    <div id="approvalProgressBox" class="hidden space-y-2 py-1">
+                        <div class="flex items-center justify-between text-xs font-mono">
+                            <span id="approvalStageText" class="text-sky-300 flex items-center gap-2">
+                                <i class="fa-solid fa-circle-notch animate-spin"></i>
+                                Routing Form 27B/6 through Mumbai-West CDN...
+                            </span>
+                            <span id="approvalPercentText" class="text-amber-300 font-bold">0%</span>
+                        </div>
+                        <div class="w-full h-3 bg-slate-950 rounded-full overflow-hidden border border-slate-700">
+                            <div id="approvalProgressBar" class="h-full bg-gradient-to-r from-rose-500 via-amber-400 to-emerald-400 transition-all duration-150" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons Row -->
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1 min-h-[52px]">
+                        <button id="btnGiveUpKeepTypo" type="button" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-mono transition cursor-pointer">
+                            🏳️ Give Up & Live With My Typo
+                        </button>
+
+                        <div id="dodgeWrapper" class="transition-transform duration-200 w-full sm:w-auto flex justify-end">
+                            <button
+                                id="btnExecuteDeletion"
+                                type="button"
+                                disabled
+                                class="w-full sm:w-auto px-5 py-2.5 rounded-xl font-mono text-xs sm:text-sm font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed"
+                            >
+                                <i class="fa-solid fa-skull-crossbones"></i>
+                                <span>Execute 1-Char Deletion</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         SHAME CERTIFICATE MODAL (FOR SCREENSHOTS)
+         ========================================== -->
+    <div id="certificateModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div class="w-full max-w-lg bg-gradient-to-b from-[#0f172a] to-[#090d16] border-2 border-indigo-500/70 rounded-2xl shadow-2xl overflow-hidden p-6 space-y-5 relative">
+            <div class="flex items-start justify-between border-b border-slate-800 pb-4">
+                <div>
+                    <span class="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Official DevFest Mumbai 2026 Audit</span>
+                    <h2 class="text-xl font-extrabold text-white mt-1.5">Certificate of Syntax Shame</h2>
+                    <p class="text-xs text-slate-400">Issued by NoRegrets IDE Enterprise Compliance Authority</p>
+                </div>
+                <button id="btnCloseCert" class="text-slate-400 hover:text-white text-lg px-2 cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="bg-[#070a12] border border-slate-800 rounded-xl p-4 space-y-3 font-mono text-xs">
+                <div class="flex justify-between py-1 border-b border-slate-800/80">
+                    <span class="text-slate-400">Certified Developer:</span>
+                    <span class="text-white font-bold">Unrepentant Backspace Masher</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-800/80">
+                    <span class="text-slate-400">Assigned Shame Tier:</span>
+                    <span id="certShameTier" class="text-purple-400 font-bold">Junior Typist</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-800/80">
+                    <span class="text-slate-400">Illegal Deletions Blocked:</span>
+                    <span id="certBlocked" class="text-rose-400 font-bold">0</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-800/80">
+                    <span class="text-slate-400">Formal Apologies Written:</span>
+                    <span id="certApologies" class="text-amber-400 font-bold">0</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-800/80">
+                    <span class="text-slate-400">Single Characters Terminated:</span>
+                    <span id="certApproved" class="text-emerald-400 font-bold">0</span>
+                </div>
+                <div class="flex justify-between py-1">
+                    <span class="text-slate-400">AI Compute Burned on Remorse:</span>
+                    <span id="certTokens" class="text-sky-400 font-bold">0 tokens (₹0)</span>
+                </div>
+            </div>
+
+            <p class="text-xs text-slate-400 italic text-center">
+                "Why fix a typo in 0.01 seconds when you can grovel to a modal for 30 seconds?" — #TheDumbIdeasChallenge @gdgmad
+            </p>
+
+            <div class="flex items-center justify-end gap-2.5 pt-1">
+                <button id="btnCopyStats" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-2 transition cursor-pointer">
+                    <i class="fa-solid fa-copy"></i>
+                    <span id="copyStatsLabel">Copy Audit Report for Social Post</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         TOAST NOTIFICATION BANNER
+         ========================================== -->
+    <div id="toastBanner" class="fixed bottom-5 right-5 z-50 hidden bg-emerald-950/95 border border-emerald-500 text-emerald-100 px-4 py-3 rounded-xl shadow-2xl font-mono text-xs items-center gap-3 max-w-md">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toastMessage">Character successfully terminated!</span>
+    </div>
+
+    <!-- ==========================================
+         MAIN APPLICATION JAVASCRIPT
+         ========================================== -->
+    <script>
+        /**************************************************************
+         * 1. WEB AUDIO API SYNTHESIZER (100% Pure JS Sound Effects)
+         **************************************************************/
+        class EnterpriseAudioEngine {
+            constructor() {
+                this.enabled = true;
+                this.ctx = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            // Crisp mechanical keystroke click
+            playKeyClick() {
+                if (!this.enabled) return;
+                try {
+                    this.init();
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(680 + Math.random() * 180, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(140, this.ctx.currentTime + 0.035);
+
+                    gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.035);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.04);
+                } catch (e) {}
+            }
+
+            // Dramatic submarine klaxon / error siren when Backspace is pressed
+            playKlaxonAlarm() {
+                if (!this.enabled) return;
+                try {
+                    this.init();
+                    const now = this.ctx.currentTime;
+                    for (let i = 0; i < 2; i++) {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'sawtooth';
+                        const start = now + i * 0.22;
+                        osc.frequency.setValueAtTime(440, start);
+                        osc.frequency.linearRampToValueAtTime(210, start + 0.19);
+
+                        gain.gain.setValueAtTime(0.16, start);
+                        gain.gain.exponentialRampToValueAtTime(0.01, start + 0.20);
+
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(start);
+                        osc.stop(start + 0.21);
+                    }
+                } catch (e) {}
+            }
+
+            // Double error buzz when user presses Backspace inside the Apology box
+            playDoublePenaltyBuzz() {
+                if (!this.enabled) return;
+                try {
+                    this.init();
+                    const now = this.ctx.currentTime;
+                    [0, 0.12, 0.24].forEach(offset => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'square';
+                        osc.frequency.setValueAtTime(150, now + offset);
+                        gain.gain.setValueAtTime(0.18, now + offset);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + offset + 0.09);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now + offset);
+                        osc.stop(now + offset + 0.1);
+                    });
+                } catch (e) {}
+            }
+
+            // Cheeky dodge boing sound
+            playDodgeBoing() {
+                if (!this.enabled) return;
+                try {
+                    this.init();
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(320, now);
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.14);
+                    gain.gain.setValueAtTime(0.14, now);
+                    gain.gain.exponentialRampToValueAtTime(0.005, now + 0.15);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.16);
+                } catch (e) {}
+            }
+
+            // Triumphant corporate fanfare when 1 character is finally deleted
+            playApprovalFanfare() {
+                if (!this.enabled) return;
+                try {
+                    this.init();
+                    const now = this.ctx.currentTime;
+                    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                    notes.forEach((freq, idx) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'triangle';
+                        const start = now + idx * 0.09;
+                        osc.frequency.setValueAtTime(freq, start);
+                        gain.gain.setValueAtTime(0.15, start);
+                        gain.gain.exponentialRampToValueAtTime(0.005, start + 0.28);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(start);
+                        osc.stop(start + 0.3);
+                    });
+                } catch (e) {}
+            }
+        }
+
+        const sfx = new EnterpriseAudioEngine();
+
+        /**************************************************************
+         * 2. APPLICATION STATE & MOCK ENTERPRISE FILES
+         **************************************************************/
+        const apologyPhrases = [
+            "I admit my skill issue",
+            "I apologize to the shareholders",
+            "I will think before I type",
+            "Backspace is a crutch for the weak",
+            "My fingers betrayed the sprint",
+            "I beg the compiler for mercy"
+        ];
+
+        const shameTiers = [
+            "Junior Typist",
+            "Walking Syntax Error",
+            "Keyboard Liability",
+            "10x Regret Engineer",
+            "HR & Legal Notified",
+            "Banned From Production"
+        ];
+
+        const snarkyTypoInjections = [
+            "\nconst mumbaiTraffic = \"zero_delayss\";",
+            "\n// TODO: ask AI how to exit vimm",
+            "\nlet preSeedValuation = \"100_Billion_Rupeees\";",
+            "\nconsole.log(\"Hello DevFest Mumbaai!\");"
+        ];
+
+        const workspaceFiles = {
+            "prod_hotfix_DO_NOT_TOUCH.js": `/**
+ * @file prod_hotfix_DO_NOT_TOUCH.js
+ * @cluster ap-south-1 (Mumbai Financial District)
+ * @policy ZERO-BACKSPACE ACCOUNTABILITY ACT (2026)
+ */
+
+function deployToMumbaiProd() {
+    const devfestMumbai2026 = "awesomee";`,
+            "salary_calculator.py": `# Enterprise Developer Compensation Engine v4.2
+# Every Backspace press deducts ₹500 from your appraisal bonus
+
+def calculate_take_home_pay(base_ctc, backspaces_pressed):
+    penalty = backspaces_pressed * 500
+    net_salary = max(0, base_ctc - penalty)
+    return f"Remaining Chai Budget: ₹{net_salary}e"`,
+            "apology_logs.json": `[\n  {\n    "status": "AWAITING_DEVELOPER_REMORSE",\n    "policy": "ETAP-v4.2-Mumbai",\n    "recorded_apologies": []\n  }\n]`
+        };
+
+        let currentFileName = "prod_hotfix_DO_NOT_TOUCH.js";
+        let lastValidCode = workspaceFiles[currentFileName];
+        let apologyLogHistory = [];
+
+        // Telemetry Counters
+        let stats = {
+            blocked: 0,
+            apologies: 0,
+            approved: 0,
+            tokensBurned: 0,
+            productivityDrop: 98.4
+        };
+
+        // Current Hostage Modal State
+        let hostageState = {
+            isOpen: false,
+            targetIndex: 0,
+            targetChar: 'e',
+            triggerReason: 'BACKSPACE',
+            requiredPhrase: apologyPhrases[0],
+            targetSlider: 73,
+            step1Valid: false,
+            step2Valid: false,
+            hasDodgedOnce: false,
+            isApproving: false
+        };
+
+        /**************************************************************
+         * 3. DOM ELEMENT REFERENCES
+         **************************************************************/
+        const codeEditor = document.getElementById('codeEditor');
+        const lineNumbers = document.getElementById('lineNumbers');
+        const charCountLabel = document.getElementById('charCountLabel');
+        const cursorStatus = document.getElementById('cursorStatus');
+        const auditLogContainer = document.getElementById('auditLogContainer');
+
+        // Telemetry DOM
+        const statBlocked = document.getElementById('statBlocked');
+        const statApologies = document.getElementById('statApologies');
+        const statApproved = document.getElementById('statApproved');
+        const statTokenCost = document.getElementById('statTokenCost');
+        const statProductivity = document.getElementById('statProductivity');
+        const statShameTier = document.getElementById('statShameTier');
+        const cardBlocked = document.getElementById('cardBlocked');
+
+        // Hostage Modal DOM
+        const hostageModal = document.getElementById('hostageModal');
+        const incidentId = document.getElementById('incidentId');
+        const triggerKeyBadge = document.getElementById('triggerKeyBadge');
+        const targetCharDisplay = document.getElementById('targetCharDisplay');
+        const targetAsciiDisplay = document.getElementById('targetAsciiDisplay');
+        const targetIndexDisplay = document.getElementById('targetIndexDisplay');
+        const requiredApologyText = document.getElementById('requiredApologyText');
+        const apologyInput = document.getElementById('apologyInput');
+        const apologyBackspaceWarning = document.getElementById('apologyBackspaceWarning');
+        const step1StatusText = document.getElementById('step1StatusText');
+        const step1Badge = document.getElementById('step1Badge');
+        const targetSliderValue = document.getElementById('targetSliderValue');
+        const remorseSlider = document.getElementById('remorseSlider');
+        const currentSliderDisplay = document.getElementById('currentSliderDisplay');
+        const step2StatusText = document.getElementById('step2StatusText');
+        const step2Badge = document.getElementById('step2Badge');
+        const step3Badge = document.getElementById('step3Badge');
+        const btnExecuteDeletion = document.getElementById('btnExecuteDeletion');
+        const dodgeWrapper = document.getElementById('dodgeWrapper');
+        const dodgeHint = document.getElementById('dodgeHint');
+        const approvalProgressBox = document.getElementById('approvalProgressBox');
+        const approvalStageText = document.getElementById('approvalStageText');
+        const approvalPercentText = document.getElementById('approvalPercentText');
+        const approvalProgressBar = document.getElementById('approvalProgressBar');
+
+        /**************************************************************
+         * 4. HELPER FUNCTIONS: LOGGING, TELEMETRY & LINE NUMBERS
+         **************************************************************/
+        function appendAuditLog(message, type = 'info') {
+            const now = new Date();
+            const timeStr = now.toTimeString().split(' ')[0];
+            const colorMap = {
+                info: 'text-slate-300 border-slate-700',
+                danger: 'text-rose-300 border-rose-500 bg-rose-950/30',
+                success: 'text-emerald-300 border-emerald-500 bg-emerald-950/30',
+                warn: 'text-amber-300 border-amber-500 bg-amber-950/30'
+            };
+
+            const div = document.createElement('div');
+            div.className = `border-l-2 pl-2 py-1 rounded-r ${colorMap[type] || colorMap.info}`;
+            div.innerHTML = `<span class="text-slate-500">[${timeStr}]</span> ${message}`;
+            auditLogContainer.appendChild(div);
+            auditLogContainer.scrollTop = auditLogContainer.scrollHeight;
+        }
+
+        function updateTelemetryUI() {
+            statBlocked.textContent = stats.blocked;
+            statApologies.textContent = stats.apologies;
+            statApproved.textContent = stats.approved;
+            statTokenCost.textContent = `(${stats.tokensBurned.toLocaleString()} tokens)`;
+            statProductivity.textContent = `-${stats.productivityDrop.toFixed(2)}%`;
+
+            const tierIndex = Math.min(shameTiers.length - 1, Math.floor(stats.blocked / 2));
+            statShameTier.textContent = shameTiers[tierIndex];
+
+            // Update apology_logs.json dynamically
+            workspaceFiles["apology_logs.json"] = JSON.stringify({
+                cluster: "ap-south-1 (Mumbai)",
+                policy: "ETAP v4.2 Zero-Tolerance Backspace Firewall",
+                total_illegal_deletions_blocked: stats.blocked,
+                characters_terminated: stats.approved,
+                shame_classification: shameTiers[tierIndex],
+                signed_apologies: apologyLogHistory
+            }, null, 2);
+
+            document.getElementById('apologyFileBadge').textContent = `${apologyLogHistory.length} logs`;
+            if (currentFileName === "apology_logs.json") {
+                lastValidCode = workspaceFiles["apology_logs.json"];
+                codeEditor.value = lastValidCode;
+                updateLineNumbers();
+            }
+        }
+
+        function updateLineNumbers() {
+            const lines = codeEditor.value.split('\n').length;
+            let html = '';
+            for (let i = 1; i <= Math.max(lines, 12); i++) {
+                html += i + '<br>';
+            }
+            lineNumbers.innerHTML = html;
+            charCountLabel.textContent = `Length: ${codeEditor.value.length} chars`;
+            updateCursorTelemetry();
+        }
+
+        function updateCursorTelemetry() {
+            const pos = codeEditor.selectionStart || 0;
+            const upToCursor = codeEditor.value.slice(0, pos);
+            const lines = upToCursor.split('\n');
+            const ln = lines.length;
+            const col = lines[lines.length - 1].length + 1;
+            cursorStatus.textContent = `Ln ${ln}, Col ${col} (Idx ${pos})`;
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toastBanner');
+            document.getElementById('toastMessage').textContent = msg;
+            toast.classList.remove('hidden');
+            toast.classList.add('flex');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                toast.classList.remove('flex');
+            }, 4000);
+        }
+
+        /**************************************************************
+         * 5. BULLETPROOF DELETION INTERCEPTION & HOSTAGE PROTOCOL
+         **************************************************************/
+        function triggerHostageProtocol(charIndexToDelete, reasonLabel = 'BACKSPACE') {
+            if (hostageState.isOpen) return;
+
+            // Ensure target index is valid inside lastValidCode
+            const safeIndex = Math.max(0, Math.min(lastValidCode.length - 1, charIndexToDelete));
+            const targetChar = lastValidCode[safeIndex] || ' ';
+
+            // Increment blocked counter & worsen productivity
+            stats.blocked += 1;
+            stats.productivityDrop = Math.min(99.99, stats.productivityDrop + 0.21);
+            updateTelemetryUI();
+
+            // Visual shake + klaxon alarm
+            sfx.playKlaxonAlarm();
+            document.body.classList.remove('shake-alert');
+            void document.body.offsetWidth; // trigger reflow
+            document.body.classList.add('shake-alert');
+
+            cardBlocked.classList.add('ring-2', 'ring-rose-500');
+            setTimeout(() => cardBlocked.classList.remove('ring-2', 'ring-rose-500'), 700);
+
+            const displayChar = targetChar === '\n' ? '\\n (NEWLINE)' : targetChar === ' ' ? 'SPACE' : `'${targetChar}'`;
+            const asciiCode = targetChar.charCodeAt(0);
+
+            appendAuditLog(
+                `🚨 <strong>BLOCKED ${reasonLabel}</strong> on char <code>${displayChar}</code> (ASCII ${asciiCode}) at index #${safeIndex}. Hostage Protocol initiated!`,
+                'danger'
+            );
+
+            // Configure Hostage Modal State
+            hostageState.isOpen = true;
+            hostageState.targetIndex = safeIndex;
+            hostageState.targetChar = targetChar;
+            hostageState.triggerReason = reasonLabel;
+            hostageState.requiredPhrase = apologyPhrases[(stats.blocked - 1) % apologyPhrases.length];
+            hostageState.targetSlider = Math.floor(Math.random() * 65) + 22; // random target between 22% and 86%
+            hostageState.step1Valid = false;
+            hostageState.step2Valid = false;
+            hostageState.hasDodgedOnce = false;
+            hostageState.isApproving = false;
+
+            // Populate Modal UI
+            incidentId.textContent = `${Math.floor(1000 + Math.random() * 9000)}-MUM`;
+            triggerKeyBadge.textContent = reasonLabel;
+            targetCharDisplay.textContent = displayChar;
+            targetAsciiDisplay.textContent = asciiCode;
+            targetIndexDisplay.textContent = `#${safeIndex}`;
+            requiredApologyText.textContent = hostageState.requiredPhrase;
+
+            apologyInput.value = '';
+            apologyBackspaceWarning.classList.add('hidden');
+            targetSliderValue.textContent = hostageState.targetSlider;
+
+            // Set initial slider far away from target
+            const startSlider = (hostageState.targetSlider + 40) % 100;
+            remorseSlider.value = startSlider;
+            currentSliderDisplay.textContent = `${startSlider}%`;
+
+            dodgeWrapper.style.transform = 'translate(0px, 0px)';
+            dodgeHint.classList.add('hidden');
+            approvalProgressBox.classList.add('hidden');
+            approvalProgressBar.style.width = '0%';
+
+            evaluateHostageSteps();
+
+            hostageModal.classList.remove('hidden');
+            hostageModal.classList.add('flex');
+            setTimeout(() => apologyInput.focus(), 80);
+        }
+
+        // Intercept physical keyboard keys on Editor
+        codeEditor.addEventListener('keydown', (e) => {
+            const key = e.key;
+            const isCtrlOrCmd = e.ctrlKey || e.metaKey;
+
+            // Block Backspace
+            if (key === 'Backspace') {
+                e.preventDefault();
+                const cursor = codeEditor.selectionStart;
+                const targetIdx = cursor > 0 ? cursor - 1 : codeEditor.value.length - 1;
+                triggerHostageProtocol(targetIdx, 'BACKSPACE KEY');
+                return;
+            }
+
+            // Block Delete
+            if (key === 'Delete') {
+                e.preventDefault();
+                const cursor = codeEditor.selectionStart;
+                const targetIdx = cursor < codeEditor.value.length ? cursor : codeEditor.value.length - 1;
+                triggerHostageProtocol(targetIdx, 'DELETE KEY');
+                return;
+            }
+
+            // Block Ctrl+Z / Cmd+Z (Undo)
+            if (isCtrlOrCmd && key.toLowerCase() === 'z') {
+                e.preventDefault();
+                triggerHostageProtocol(codeEditor.value.length - 1, 'CTRL+Z (COWARDICE UNDO)');
+                return;
+            }
+
+            // Block Ctrl+X / Cmd+X (Cut)
+            if (isCtrlOrCmd && key.toLowerCase() === 'x') {
+                e.preventDefault();
+                triggerHostageProtocol(codeEditor.selectionStart || codeEditor.value.length - 1, 'CTRL+X (ILLEGAL CUT)');
+                return;
+            }
+
+            // If user has selected text and types a regular character to overwrite multiple chars, block it!
+            if (
+                codeEditor.selectionStart !== codeEditor.selectionEnd &&
+                key.length === 1 &&
+                !isCtrlOrCmd
+            ) {
+                e.preventDefault();
+                triggerHostageProtocol(codeEditor.selectionStart, 'SELECTION OVERWRITE');
+                return;
+            }
+
+            if (key.length === 1 && !isCtrlOrCmd) {
+                sfx.playKeyClick();
+            }
+        });
+
+        // Also catch mobile soft-keyboard deletions, context-menu cuts, or beforeinput deletions
+        codeEditor.addEventListener('input', () => {
+            const currentVal = codeEditor.value;
+
+            // If text became shorter than lastValidCode, immediately revert and trigger Hostage Modal!
+            if (currentVal.length < lastValidCode.length) {
+                // Find the first index where a character went missing
+                let diffIdx = lastValidCode.length - 1;
+                for (let i = 0; i < lastValidCode.length; i++) {
+                    if (currentVal[i] !== lastValidCode[i]) {
+                        diffIdx = i;
+                        break;
+                    }
+                }
+                // Revert editor value back to lastValidCode!
+                codeEditor.value = lastValidCode;
+                updateLineNumbers();
+                triggerHostageProtocol(diffIdx, 'MOBILE / INPUT DELETION');
+                return;
+            }
+
+            // Valid addition of characters
+            lastValidCode = currentVal;
+            workspaceFiles[currentFileName] = currentVal;
+            updateLineNumbers();
+        });
+
+        codeEditor.addEventListener('click', updateCursorTelemetry);
+        codeEditor.addEventListener('keyup', updateCursorTelemetry);
+        codeEditor.addEventListener('scroll', () => {
+            lineNumbers.scrollTop = codeEditor.scrollTop;
+        });
+
+        /**************************************************************
+         * 6. STEP 1, 2, 3 RITUAL LOGIC INSIDE THE HOSTAGE MODAL
+         **************************************************************/
+        let lastApologyValue = '';
+
+        // Crucial Joke: Intercept Backspace inside the Apology Input Box!
+        apologyInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' || e.key === 'Delete') {
+                e.preventDefault();
+                penalizeApologyBackspace();
+                return;
+            }
+            if (e.key.length === 1) {
+                sfx.playKeyClick();
+            }
+        });
+
+        apologyInput.addEventListener('input', () => {
+            // Also detect mobile backspace inside apology input
+            if (apologyInput.value.length < lastApologyValue.length) {
+                penalizeApologyBackspace();
+                return;
+            }
+            lastApologyValue = apologyInput.value;
+            evaluateHostageSteps();
+        });
+
+        function penalizeApologyBackspace() {
+            sfx.playDoublePenaltyBuzz();
+            apologyInput.value = '';
+            lastApologyValue = '';
+            stats.blocked += 1;
+            stats.productivityDrop = Math.min(99.99, stats.productivityDrop + 0.15);
+            updateTelemetryUI();
+
+            apologyBackspaceWarning.classList.remove('hidden');
+            appendAuditLog(
+                `🚨 <strong>DOUBLE INFRACTION:</strong> Developer pressed BACKSPACE inside the Apology Box! Apology wiped.`,
+                'danger'
+            );
+            evaluateHostageSteps();
+        }
+
+        // Step 2 Slider Listeners
+        remorseSlider.addEventListener('input', () => {
+            sfx.playKeyClick();
+            evaluateHostageSteps();
+        });
+
+        document.getElementById('btnSliderMinus').addEventListener('click', () => {
+            remorseSlider.value = Math.max(0, parseInt(remorseSlider.value, 10) - 1);
+            sfx.playKeyClick();
+            evaluateHostageSteps();
+        });
+
+        document.getElementById('btnSliderPlus').addEventListener('click', () => {
+            remorseSlider.value = Math.min(100, parseInt(remorseSlider.value, 10) + 1);
+            sfx.playKeyClick();
+            evaluateHostageSteps();
+        });
+
+        // Auto-Bribe Button (For quick demoing or impatient executives)
+        document.getElementById('btnAutoBribe').addEventListener('click', () => {
+            apologyInput.value = hostageState.requiredPhrase;
+            lastApologyValue = hostageState.requiredPhrase;
+            remorseSlider.value = hostageState.targetSlider;
+            sfx.playKeyClick();
+            appendAuditLog(`💸 Compliance Officer bribed with 1 Cutting Chai. Steps 1 & 2 auto-verified.`, 'warn');
+            evaluateHostageSteps();
+        });
+
+        function evaluateHostageSteps() {
+            // Evaluate Step 1
+            const typed = apologyInput.value;
+            const target = hostageState.requiredPhrase;
+
+            if (typed === target) {
+                hostageState.step1Valid = true;
+                step1StatusText.textContent = '✓ Contrition Verified';
+                step1StatusText.className = 'text-xs font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shrink-0';
+                step1Badge.className = 'w-6 h-6 rounded-full bg-emerald-500 text-slate-950 font-mono text-xs font-bold flex items-center justify-center';
+                step1Badge.innerHTML = '<i class="fa-solid fa-check"></i>';
+            } else {
+                hostageState.step1Valid = false;
+                const isPrefixMatch = target.startsWith(typed);
+                step1StatusText.textContent = typed.length === 0
+                    ? 'Awaiting Contrition'
+                    : isPrefixMatch
+                        ? `Typing (${typed.length}/${target.length})`
+                        : '❌ Typo in Apology!';
+                step1StatusText.className = isPrefixMatch
+                    ? 'text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-amber-300 shrink-0'
+                    : 'text-xs font-mono px-2 py-0.5 rounded bg-rose-500/30 text-rose-200 border border-rose-500 shrink-0';
+                step1Badge.className = 'w-6 h-6 rounded-full bg-rose-600 text-white font-mono text-xs font-bold flex items-center justify-center';
+                step1Badge.textContent = '1';
+            }
+
+            // Evaluate Step 2
+            const sliderVal = parseInt(remorseSlider.value, 10);
+            currentSliderDisplay.textContent = `${sliderVal}%`;
+
+            if (sliderVal === hostageState.targetSlider) {
+                hostageState.step2Valid = true;
+                currentSliderDisplay.className = 'text-emerald-400';
+                step2StatusText.textContent = '✓ Frequency Locked';
+                step2StatusText.className = 'text-xs font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+                step2Badge.className = 'w-6 h-6 rounded-full bg-emerald-500 text-slate-950 font-mono text-xs font-bold flex items-center justify-center';
+                step2Badge.innerHTML = '<i class="fa-solid fa-check"></i>';
+            } else {
+                hostageState.step2Valid = false;
+                currentSliderDisplay.className = 'text-rose-400';
+                step2StatusText.textContent = `Off by ${Math.abs(sliderVal - hostageState.targetSlider)}%`;
+                step2StatusText.className = 'text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400';
+                step2Badge.className = 'w-6 h-6 rounded-full bg-rose-600 text-white font-mono text-xs font-bold flex items-center justify-center';
+                step2Badge.textContent = '2';
+            }
+
+            // Unlock or Lock Step 3 Execute Button
+            if (hostageState.step1Valid && hostageState.step2Valid && !hostageState.isApproving) {
+                btnExecuteDeletion.disabled = false;
+                btnExecuteDeletion.className = 'w-full sm:w-auto px-5 py-2.5 rounded-xl font-mono text-xs sm:text-sm font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 shadow-lg shadow-emerald-500/30 cursor-pointer';
+                step3Badge.className = 'w-6 h-6 rounded-full bg-amber-400 text-slate-950 font-mono text-xs font-bold flex items-center justify-center';
+            } else if (!hostageState.isApproving) {
+                btnExecuteDeletion.disabled = true;
+                btnExecuteDeletion.className = 'w-full sm:w-auto px-5 py-2.5 rounded-xl font-mono text-xs sm:text-sm font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed';
+                step3Badge.className = 'w-6 h-6 rounded-full bg-slate-700 text-slate-300 font-mono text-xs font-bold flex items-center justify-center';
+            }
+        }
+
+        // Dodging Execute Button on First Hover
+        btnExecuteDeletion.addEventListener('mouseenter', () => {
+            if (!btnExecuteDeletion.disabled && !hostageState.hasDodgedOnce && !hostageState.isApproving) {
+                hostageState.hasDodgedOnce = true;
+                sfx.playDodgeBoing();
+                dodgeWrapper.style.transform = 'translateX(-42px)';
+                dodgeHint.classList.remove('hidden');
+                setTimeout(() => {
+                    dodgeWrapper.style.transform = 'translateX(0px)';
+                }, 650);
+            }
+        });
+
+        // Execute 1-Character Deletion Multi-Region Approval Ritual
+        btnExecuteDeletion.addEventListener('click', () => {
+            if (btnExecuteDeletion.disabled || hostageState.isApproving) return;
+
+            hostageState.isApproving = true;
+            btnExecuteDeletion.disabled = true;
+            approvalProgressBox.classList.remove('hidden');
+
+            const stages = [
+                { pct: 20, msg: 'Routing Form 27B/6 through ap-south-1 (Mumbai-West CDN)...' },
+                { pct: 50, msg: 'Consulting Principal Staff Architect & Legal Counsel...' },
+                { pct: 80, msg: 'Burning 4,200 AI tokens to verify developer remorse...' },
+                { pct: 100, msg: 'Isolating ASCII byte & garbage-collecting 1 character...' }
+            ];
+
+            let stageIdx = 0;
+            const interval = setInterval(() => {
+                if (stageIdx < stages.length) {
+                    const st = stages[stageIdx];
+                    approvalProgressBar.style.width = `${st.pct}%`;
+                    approvalPercentText.textContent = `${st.pct}%`;
+                    approvalStageText.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin"></i> ${st.msg}`;
+                    sfx.playKeyClick();
+                    stageIdx++;
+                } else {
+                    clearInterval(interval);
+                    finalizeOneCharacterDeletion();
+                }
+            }, 520);
+        });
+
+        function finalizeOneCharacterDeletion() {
+            const idx = hostageState.targetIndex;
+            const deletedChar = lastValidCode[idx] || '';
+
+            // Delete EXACTLY ONE character at idx
+            lastValidCode = lastValidCode.slice(0, idx) + lastValidCode.slice(idx + 1);
+            workspaceFiles[currentFileName] = lastValidCode;
+            codeEditor.value = lastValidCode;
+
+            // Update stats
+            stats.apologies += 1;
+            stats.approved += 1;
+            stats.tokensBurned += 4200;
+
+            apologyLogHistory.push({
+                timestamp: new Date().toISOString(),
+                file: currentFileName,
+                terminated_char: deletedChar,
+                char_index: idx,
+                apology_statement: hostageState.requiredPhrase,
+                remorse_calibration: `${hostageState.targetSlider}%`
+            });
+
+            updateTelemetryUI();
+            updateLineNumbers();
+
+            // Close modal & celebrate
+            hostageModal.classList.add('hidden');
+            hostageModal.classList.remove('flex');
+            hostageState.isOpen = false;
+            hostageState.isApproving = false;
+
+            sfx.playApprovalFanfare();
+
+            const cleanChar = deletedChar === '\n' ? '\\n' : deletedChar;
+            appendAuditLog(
+                `✅ <strong>APPROVED:</strong> 1 character (<code>'${cleanChar}'</code> at index #${idx}) terminated after formal apology & 4,200 AI tokens.`,
+                'success'
+            );
+            showToast(`Approved! Deleted '${cleanChar}' at index #${idx}. Only ${lastValidCode.length} characters left!`);
+
+            // Restore cursor right where deletion happened
+            codeEditor.focus();
+            codeEditor.setSelectionRange(idx, idx);
+            updateCursorTelemetry();
+        }
+
+        // Give up & keep typo button
+        document.getElementById('btnGiveUpKeepTypo').addEventListener('click', () => {
+            hostageModal.classList.add('hidden');
+            hostageModal.classList.remove('flex');
+            hostageState.isOpen = false;
+            hostageState.isApproving = false;
+            appendAuditLog(`🏳️ Developer surrendered to bureaucracy and decided to ship the typo to production.`, 'warn');
+            codeEditor.focus();
+        });
+
+        /**************************************************************
+         * 7. TOP NAVBAR & SIDEBAR CONTROLS
+         **************************************************************/
+        // Trigger Demo Typo button
+        document.getElementById('btnTriggerTypo').addEventListener('click', () => {
+            const snippet = snarkyTypoInjections[Math.floor(Math.random() * snarkyTypoInjections.length)];
+            lastValidCode = lastValidCode + snippet;
+            workspaceFiles[currentFileName] = lastValidCode;
+            codeEditor.value = lastValidCode;
+            updateLineNumbers();
+            codeEditor.focus();
+            codeEditor.setSelectionRange(lastValidCode.length, lastValidCode.length);
+            sfx.playKeyClick();
+            appendAuditLog(`🐛 Injected fresh production typo. Press Backspace to repent!`, 'warn');
+        });
+
+        // Simulate Backspace Buttons (Navbar & Callout Banner)
+        function handleManualBackspaceTrigger() {
+            const pos = codeEditor.selectionStart > 0 ? codeEditor.selectionStart - 1 : lastValidCode.length - 1;
+            triggerHostageProtocol(pos, 'BACKSPACE KEY');
+        }
+        document.getElementById('btnSimulateBackspace').addEventListener('click', handleManualBackspaceTrigger);
+        document.getElementById('btnBannerBackspace').addEventListener('click', handleManualBackspaceTrigger);
+
+        // Sound Toggle
+        document.getElementById('btnSoundToggle').addEventListener('click', () => {
+            sfx.enabled = !sfx.enabled;
+            const icon = document.getElementById('soundIcon');
+            const label = document.getElementById('soundLabel');
+            const btn = document.getElementById('btnSoundToggle');
+            if (sfx.enabled) {
+                icon.className = 'fa-solid fa-volume-high';
+                label.textContent = 'SFX: ON';
+                btn.classList.replace('text-slate-400', 'text-emerald-400');
+                sfx.playKeyClick();
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark';
+                label.textContent = 'SFX: OFF';
+                btn.classList.replace('text-emerald-400', 'text-slate-400');
+            }
+        });
+
+        // File Switching in Sidebar
+        document.querySelectorAll('.file-tab').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetFile = btn.getAttribute('data-file');
+                currentFileName = targetFile;
+                lastValidCode = workspaceFiles[currentFileName];
+                codeEditor.value = lastValidCode;
+
+                document.querySelectorAll('.file-tab').forEach(b => {
+                    b.className = 'file-tab w-full text-left px-3 py-2 rounded-lg text-xs font-mono flex items-center justify-between text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition cursor-pointer';
+                });
+                btn.className = 'file-tab w-full text-left px-3 py-2 rounded-lg text-xs font-mono flex items-center justify-between bg-sky-500/15 text-sky-300 border border-sky-500/30 transition cursor-pointer';
+
+                document.getElementById('activeTabName').textContent = targetFile;
+                const iconEl = document.getElementById('activeTabIcon');
+                if (targetFile.endsWith('.js')) iconEl.className = 'fa-brands fa-js text-amber-400';
+                else if (targetFile.endsWith('.py')) iconEl.className = 'fa-brands fa-python text-sky-400';
+                else iconEl.className = 'fa-solid fa-file-code text-emerald-400';
+
+                updateLineNumbers();
+                sfx.playKeyClick();
+                appendAuditLog(`📂 Switched active buffer to <code>${targetFile}</code>.`, 'info');
+            });
+        });
+
+        // Clear Audit Logs
+        document.getElementById('btnClearLogs').addEventListener('click', () => {
+            auditLogContainer.innerHTML = '';
+            appendAuditLog(`⚠️ Attempt to erase compliance history noted by HR.`, 'warn');
+        });
+
+        // Shame Certificate Modal
+        const certificateModal = document.getElementById('certificateModal');
+        document.getElementById('btnShameCert').addEventListener('click', () => {
+            document.getElementById('certShameTier').textContent = statShameTier.textContent;
+            document.getElementById('certBlocked').textContent = stats.blocked;
+            document.getElementById('certApologies').textContent = stats.apologies;
+            document.getElementById('certApproved').textContent = stats.approved;
+            document.getElementById('certTokens').textContent = `${stats.tokensBurned.toLocaleString()} tokens (₹${(stats.approved * 4200).toLocaleString()})`;
+            certificateModal.classList.remove('hidden');
+            certificateModal.classList.add('flex');
+            sfx.playKeyClick();
+        });
+
+        document.getElementById('btnCloseCert').addEventListener('click', () => {
+            certificateModal.classList.add('hidden');
+            certificateModal.classList.remove('flex');
+        });
+
+        // Copy Audit Report to Clipboard (iFrame-compatible)
+        document.getElementById('btnCopyStats').addEventListener('click', () => {
+            const reportText = `🚨 NoRegrets IDE (Enterprise Edition) Audit Report:\n` +
+                `• Shame Tier: ${statShameTier.textContent}\n` +
+                `• Illegal Backspaces Blocked: ${stats.blocked}\n` +
+                `• Formal Apologies Written: ${stats.apologies}\n` +
+                `• Single Characters Deleted: ${stats.approved}\n` +
+                `• Productivity Impact: -${stats.productivityDrop.toFixed(2)}%\n` +
+                `Built for #TheDumbIdeasChallenge @gdgmad #DevFestMumbai2026`;
+
+            const tempArea = document.createElement('textarea');
+            tempArea.value = reportText;
+            document.body.appendChild(tempArea);
+            tempArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempArea);
+
+            const copyLabel = document.getElementById('copyStatsLabel');
+            copyLabel.textContent = '✓ Copied to Clipboard!';
+            setTimeout(() => {
+                copyLabel.textContent = 'Copy Audit Report for Social Post';
+            }, 2500);
+        });
+
+        /**************************************************************
+         * 8. INITIALIZATION ON WINDOW LOAD
+         **************************************************************/
+        window.onload = function () {
+            codeEditor.value = lastValidCode;
+            updateLineNumbers();
+            updateTelemetryUI();
+
+            // Place cursor right after "awesomee" so immediate Backspace targets the extra 'e'
+            const typoTargetPos = lastValidCode.indexOf('"awesomee"') + 9;
+            codeEditor.focus();
+            if (typoTargetPos > 8) {
+                codeEditor.setSelectionRange(typoTargetPos, typoTargetPos);
+            }
+            updateCursorTelemetry();
+
+            appendAuditLog(`🟢 <strong>NoRegrets IDE v4.2.0</strong> initialized on cluster <code>ap-south-1 (Mumbai)</code>.`, 'info');
+            appendAuditLog(`🛡️ Backspace, Delete, Ctrl+Z, and Cut keys are now held hostage under ETAP v4.2.`, 'warn');
+            appendAuditLog(`👉 Tip: Press <strong>Backspace</strong> right now to fix <code>"awesomee"</code> on Line 8!`, 'info');
+        };
+    </script>
+</body>
+</html>
