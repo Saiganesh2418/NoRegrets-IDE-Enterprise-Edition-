@@ -7,4 +7,4 @@
 4. To delete just one character, you must:
 Carefully type the exact randomized apology text required (watch out—pressing Backspace inside the apology box triggers a double infraction!).
 Drag the acoustic remorse slider to the precise target percentage.
-Click the final compliance button while dodging its cursor troll.</H3>
+Click the final compliance button while dodging its cursor troll. </H3>
